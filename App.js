@@ -20,13 +20,13 @@ const App = () => {
   return (
     <NavigationContainer>
       {
-        // authId != undefined &&
-        // (
-        //   authId ?
-        <HomeNavigation />
-        // :
-        // <LoginNavigation />
-        // )
+        authId != undefined &&
+        (
+          authId ?
+            <HomeNavigation />
+            :
+            <LoginNavigation />
+        )
       }
     </NavigationContainer>
   )
