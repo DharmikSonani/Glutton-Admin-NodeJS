@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, Modal, Platform, TextInput, } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Modal, Platform, TextInput, Dimensions, } from 'react-native'
 import React, { useState, } from 'react'
 import LinearGradient from 'react-native-linear-gradient';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -18,6 +18,8 @@ import { useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { addMenuCategoryAPI, updateMenuCategoryByIdAPI } from '../api/utils';
 import socketServices from '../api/Socket';
+
+const { height, width } = Dimensions.get('screen');
 
 const ManageCategoryScreen = ({ navigation, route }) => {
 
@@ -129,110 +131,106 @@ const ManageCategoryScreen = ({ navigation, route }) => {
     }
 
     return (
-        <ScreenHeader
-            title={isUpdate ? catName : 'Add New Category'}
-            navigation={navigation}
-        >
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                style={styles.Container}
-                contentContainerStyle={styles.ContentContainer}
+        <>
+            <ScreenHeader
+                title={isUpdate ? catName : 'Add New Category'}
+                navigation={navigation}
             >
-                {
-                    isUpdate == false &&
-                    <View
-                        style={[styles.CategoryNameContainer, Elevation_2]}
-                    >
-                        <Text style={styles.CategoryNameText} numberOfLines={1}>Category Name</Text>
-                        <TextInput
-                            style={styles.CategoryTextInput}
-                            placeholder="Category"
-                            placeholderTextColor={COLOR.GRAY}
-                            keyboardType='default'
-                            onChangeText={setCatName}
-                            value={catName}
-                            maxLength={30}
-                        />
-                    </View>
-                }
-
-                <View
-                    style={[styles.ImageContainer, Elevation_5]}
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    style={styles.Container}
+                    contentContainerStyle={styles.ContentContainer}
                 >
                     {
-                        (image || isUpdate) ?
-                            <FastImage
-                                source={{ uri: image ? image : route.params.data?.img }}
-                                style={styles.Image}
-                                resizeMode='cover'
+                        isUpdate == false &&
+                        <View
+                            style={[styles.CategoryNameContainer, Elevation_2]}
+                        >
+                            <Text style={styles.CategoryNameText} numberOfLines={1}>Category Name</Text>
+                            <TextInput
+                                style={styles.CategoryTextInput}
+                                placeholder="Category"
+                                placeholderTextColor={COLOR.GRAY}
+                                keyboardType='default'
+                                onChangeText={setCatName}
+                                value={catName}
+                                maxLength={30}
                             />
-                            :
+                        </View>
+                    }
+
+                    <View
+                        style={[styles.ImageContainer, Elevation_5]}
+                    >
+                        {
+                            (image || isUpdate) ?
+                                <FastImage
+                                    source={{ uri: image ? image : route.params.data?.img }}
+                                    style={styles.Image}
+                                    resizeMode='cover'
+                                />
+                                :
+                                <TouchableOpacity
+                                    style={[Elevation_5, { shadowColor: COLOR.ORANGE }]}
+                                    onPress={selectImage}
+                                >
+                                    <Ionicons name={'add-circle'} size={50} color={COLOR.ORANGE} />
+                                </TouchableOpacity>
+                        }
+
+                        {(image || isUpdate) && <Text style={[styles.CatName, { color: fontColor, }]} numberOfLines={1}>{catName}</Text>}
+                        {
+                            (image || isUpdate) &&
                             <TouchableOpacity
-                                style={[Elevation_5, { shadowColor: COLOR.ORANGE }]}
+                                style={[styles.ChangeButton, Elevation_5]}
                                 onPress={selectImage}
                             >
-                                <Ionicons name={'add-circle'} size={50} color={COLOR.ORANGE} />
+                                <MaterialIcons name='change-circle' size={40} color={COLOR.ORANGE} />
                             </TouchableOpacity>
-                    }
+                        }
+                    </View>
 
-                    {(image || isUpdate) && <Text style={[styles.CatName, { color: fontColor, }]} numberOfLines={1}>{catName}</Text>}
-                    {
-                        (image || isUpdate) &&
-                        <TouchableOpacity
-                            style={[styles.ChangeButton, Elevation_5]}
-                            onPress={selectImage}
-                        >
-                            <MaterialIcons name='change-circle' size={40} color={COLOR.ORANGE} />
-                        </TouchableOpacity>
-                    }
-                </View>
+                    <ColorPickerComponent
+                        value={fontColor}
+                        onChange={({ rgba }) => { setFontColor(rgba) }}
+                    />
 
-                <ColorPickerComponent
-                    value={fontColor}
-                    onChange={({ rgba }) => { setFontColor(rgba) }}
-                />
-
-                <TouchableOpacity
-                    style={[styles.SaveButton, Elevation_10, { shadowColor: COLOR.ORANGE }]}
-                    onPress={() => {
-                        if (isUpdate) {
-                            setModalVisible(true)
-                        } else {
-                            if (catName == '') {
-                                NormalSnackBar('Fill Category Name.');
-                            } else if (image == '') {
-                                NormalSnackBar('Select Menu Card.');
-                            } else if (fontColor == 'rgba(0,0,0,0)') {
-                                NormalSnackBar('Select Item Font Color.');
+                    <TouchableOpacity
+                        style={[styles.SaveButton, Elevation_10, { shadowColor: COLOR.ORANGE }]}
+                        onPress={() => {
+                            if (isUpdate) {
+                                setModalVisible(true)
                             } else {
-                                setCatName(catName.trimEnd());
-                                if (categories.some(o => o.name.toLocaleLowerCase() === catName.trimEnd().toLocaleLowerCase())) {
-                                    NormalSnackBar("This category name is already exists.");
+                                if (catName == '') {
+                                    NormalSnackBar('Fill Category Name.');
+                                } else if (image == '') {
+                                    NormalSnackBar('Select Menu Card.');
+                                } else if (fontColor == 'rgba(0,0,0,0)') {
+                                    NormalSnackBar('Select Item Font Color.');
                                 } else {
-                                    setModalVisible(true)
+                                    setCatName(catName.trimEnd());
+                                    if (categories.some(o => o.name.toLocaleLowerCase() === catName.trimEnd().toLocaleLowerCase())) {
+                                        NormalSnackBar("This category name is already exists.");
+                                    } else {
+                                        setModalVisible(true)
+                                    }
                                 }
                             }
-                        }
-                    }}
-                >
-                    <LinearGradient
-                        colors={GRADIENTCOLOR.ORANGE_100_100}
-                        style={styles.SaveButtonGradient}
-                        angle={150}
-                        useAngle
+                        }}
                     >
-                        <Text style={styles.SaveText}>Save</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-            </ScrollView>
-
-            <Modal
-                animationType='fade'
-                visible={isModalVisible}
-                transparent
-                statusBarTranslucent
-                onRequestClose={() => { setModalVisible(false) }}
-            >
+                        <LinearGradient
+                            colors={GRADIENTCOLOR.ORANGE_100_100}
+                            style={styles.SaveButtonGradient}
+                            angle={150}
+                            useAngle
+                        >
+                            <Text style={styles.SaveText}>Save</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </ScrollView>
+            </ScreenHeader>
+            {
+                isModalVisible &&
                 <View style={[styles.viewWrapper]}>
                     <MenuCategoryModal
                         image={(image || isUpdate) && (image ? image : route.params.data.img)}
@@ -244,8 +242,8 @@ const ManageCategoryScreen = ({ navigation, route }) => {
                         isUpdate={isUpdate}
                     />
                 </View>
-            </Modal>
-        </ScreenHeader>
+            }
+        </>
     )
 }
 
@@ -253,11 +251,14 @@ export default ManageCategoryScreen
 
 const styles = StyleSheet.create({
     viewWrapper: {
-        flex: 1,
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "#00000050",
         padding: 30,
+        width: width,
+        height: height,
+        position: 'absolute',
+        zIndex: 1000,
     },
     Container: {
         flex: 1,
